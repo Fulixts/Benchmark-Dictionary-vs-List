@@ -5,64 +5,104 @@ namespace Benchmark
 {
     public class Demo
     {
-        private readonly string path = @"Path";
+        private static string path = Path.Combine(AppContext.BaseDirectory, "JSON\\data.json");
+        private static List<BenchmarkModel> _json = getJson(path);
+        private const string IdKeyOrValue = "8957_958";
+        private Dictionary<string, BenchmarkModel> _dic;
+        private List<BenchmarkModel> _list;
+        private int _count = 1000;
 
         public Demo()
         {
+            _list = AddToList();
+            _dic = AddToDictionary();
         }
 
         [Benchmark]
-        public void AddToList()
+        public List<BenchmarkModel> AddToList()
         {
             List<BenchmarkModel> benchList = new List<BenchmarkModel>();
 
-            List<BenchmarkModel> gm = getJson(path);
-
-            foreach (var benc in gm)
+            for (int j = 0; j < _count; j++)
             {
-                benchList.Add(new BenchmarkModel()
+                int i = 0;
+                foreach (var benc in _json)
                 {
-                    Choices = benc.Choices,
-                    Code = benc.Code,
-                    Dimensions = benc.Dimensions,
-                    Images = benc.Images,
-                    IsInOutage = benc.IsInOutage,
-                    Names = benc.Names,
-                    PriceTags = benc.PriceTags,
-                    SelectedGrill = benc.SelectedGrill,
-                    ShouldShow = benc.ShouldShow
-                });
+                    benchList.Add(new BenchmarkModel()
+                    {
+                        Id = $"{j}_{i}",
+                        Choices = benc.Choices,
+                        Code = benc.Code,
+                        Dimensions = benc.Dimensions,
+                        Images = benc.Images,
+                        IsInOutage = benc.IsInOutage,
+                        Names = benc.Names,
+                        PriceTags = benc.PriceTags,
+                        SelectedGrill = benc.SelectedGrill,
+                        ShouldShow = benc.ShouldShow
+                    });
+                    i++;
+                }
             }
+            return benchList;
         }
 
         [Benchmark]
-        public void AddToDictionary()
+        public Dictionary<string, BenchmarkModel> AddToDictionary()
         {
-            var benchDictionary = new Dictionary<int, BenchmarkModel>();
+            var benchDictionary = new Dictionary<string, BenchmarkModel>();
 
-            var gm = getJson(path);
-
-            for (int i = 0; i < gm.Count; i++)
+            for (int j = 0; j < _count; j++)
             {
-                benchDictionary.Add(i, new BenchmarkModel()
+                for (int i = 0; i < _json.Count; i++)
                 {
-                    Choices = gm[i].Choices,
-                    Code = gm[i].Code,
-                    Dimensions = gm[i].Dimensions,
-                    Images = gm[i].Images,
-                    IsInOutage = gm[i].IsInOutage,
-                    Names = gm[i].Names,
-                    PriceTags = gm[i].PriceTags,
-                    SelectedGrill = gm[i].SelectedGrill,
-                    ShouldShow = gm[i].ShouldShow
-                });
+                    benchDictionary.Add($"{j}_{i}", new BenchmarkModel()
+                    {
+                        Id = $"{j}_{i}",
+                        Choices = _json[i].Choices,
+                        Code = $"{_json[i].Code}",
+                        Dimensions = _json[i].Dimensions,
+                        Images = _json[i].Images,
+                        IsInOutage = _json[i].IsInOutage,
+                        Names = _json[i].Names,
+                        PriceTags = _json[i].PriceTags,
+                        SelectedGrill = _json[i].SelectedGrill,
+                        ShouldShow = _json[i].ShouldShow
+                    });
+                }
             }
+
+            return benchDictionary;
         }
 
-        public List<BenchmarkModel> getJson(string path)
+        [Benchmark]
+        public BenchmarkModel findOnList()
         {
-            List<BenchmarkModel> gm = JsonConvert.DeserializeObject<List<BenchmarkModel>>(File.ReadAllText(path));
-            return gm;
+            BenchmarkModel di = _list.FirstOrDefault(c => c.Id == IdKeyOrValue);
+
+            return di;
+        }
+
+        [Benchmark]
+        public BenchmarkModel findOnDictionaryByKey()
+        {
+            var di = _dic[IdKeyOrValue];
+
+            return di;
+        }
+
+        [Benchmark]
+        public BenchmarkModel findOnDictionaryByValue()
+        {
+            var di = _dic.FirstOrDefault(d => d.Value.Id == IdKeyOrValue).Value;
+
+            return di;
+        }
+
+        public static List<BenchmarkModel> getJson(string path)
+        {
+            List<BenchmarkModel> json = JsonConvert.DeserializeObject<List<BenchmarkModel>>(File.ReadAllText(path));
+            return json;
         }
     }
 }

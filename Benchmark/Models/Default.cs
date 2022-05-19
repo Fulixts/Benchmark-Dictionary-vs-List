@@ -1,4 +1,4 @@
-﻿namespace Benchmark
+﻿namespace Benchmark.Models
 {
     public class Default
     {
